@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "hanzi-writer": "^3.4.0",
-    "js-jieba": "^1.0.12",
+    "jieba-zh-tw": "^1.0.12",
     "pinia": "^2.0.28",
     "vue": "^3.2.45",
     "vue-i18n": "9",
