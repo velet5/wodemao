@@ -2,19 +2,11 @@
   <div class="home">
     <section class="static">
       <section class="logo">
-        <img src="@/assets/cat.png" :class="{ transparent }" />
-        <div ref="hanzi" id="hanzi" width="300" height="300"></div>
+        <Logo v-if="!transparent" />
+        <StrokeOrderBoard v-model="characters" />
       </section>
       <section class="search">
-        <div class="input">
-          <input
-            type="text"
-            placeholder="Enter something..."
-            v-model="query"
-            @keyup.enter="run"
-          />
-          <button class="button" @click="run">🐾</button>
-        </div>
+        <QueryInput @input="run" />
       </section>
     </section>
     <section class="results"></section>
@@ -22,33 +14,30 @@
 </template>
 
 <script setup lang="ts">
+import Logo from '@/components/Logo.vue'
+import QueryInput from '@/components/QueryInput.vue'
+import StrokeOrderBoard from '@/components/StrokeOrderBoard.vue'
 import { ref } from 'vue'
 
-import HanziWriter from 'hanzi-writer'
-
-// refs
-const hanzi = ref<HTMLCanvasElement | null>(null)
-const query = ref('')
-const characters = ref([] as string[])
+const characters = ref('')
 const transparent = ref(false)
 
+const chineseRegex = /\p{Script=Han}/u
 // actions
-const run = () => {
-  const q = query.value
+const run = (query: string) => {
+  const q = query
   if (q === lastQuery) return
   lastQuery = q
 
   const words = split(q).filter(isMatch)
-  const all = words.flatMap((word) => word.split(''))
+  const all = words
+    .flatMap((word) => word.split('').filter((c) => c.match(chineseRegex)))
+    .join('')
   characters.value = all
-
-  if (all.length == 0) return
-
-  drawCharacter(all[0])
+  transparent.value = all.length > 0
 }
 
 // internal
-
 const regex = /\p{Script=Han}/u
 let lastQuery = ''
 
@@ -58,29 +47,6 @@ const isMatch = (str: string) => {
 
 const split = (str: string): string[] => {
   return str.split('').filter((s) => s !== ' ')
-}
-
-const drawCharacter = (character: string) => {
-  const canvas = hanzi.value
-  console.log(canvas)
-  if (canvas == null) return
-
-  canvas.innerHTML = ''
-
-  const writer = HanziWriter.create(canvas, character, {
-    width: 300,
-    height: 300,
-    padding: 5,
-    showOutline: true,
-    strokeAnimationSpeed: 0.7,
-    delayBetweenStrokes: 20,
-    delayBetweenLoops: 1000,
-    onLoadCharDataError: (err) => {
-      console.error(err)
-    },
-  })
-  transparent.value = true
-  writer.loopCharacterAnimation()
 }
 </script>
 
@@ -100,54 +66,5 @@ const drawCharacter = (character: string) => {
   justify-content: center;
   height: 100vh;
   gap: 2rem;
-}
-
-.logo {
-  position: relative;
-}
-
-.logo img {
-  display: block;
-  width: 300px;
-}
-
-.logo img.transparent {
-  display: none;
-  transition: all 0.5s ease-in-out;
-}
-
-.hanzi {
-  width: 300px;
-  height: 300px;
-}
-
-.input {
-  position: relative;
-  border: 1px solid #ddd;
-  border-radius: 0.2rem;
-}
-
-.input input {
-  width: calc(100% - 2rem);
-  padding: 0.3rem;
-  font-size: 1.2rem;
-  outline: none;
-  border: none;
-}
-
-.button {
-  position: absolute;
-  right: 0.3rem;
-  top: 0.3rem;
-  border: none;
-  outline: none;
-  background: none;
-  width: 1.5rem;
-  height: 1.5rem;
-  cursor: pointer;
-}
-
-.button:hover {
-  text-shadow: 0 0 5px rgb(211, 115, 64);
 }
 </style>
