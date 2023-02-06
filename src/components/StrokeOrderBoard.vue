@@ -1,10 +1,18 @@
 <template>
-  <section class="stroke-order-board" ref="root"></section>
+  <section class="stroke-order-board">
+    <div v-for="(ch, i) in characters">
+      <Zi
+        v-model="characters[i]"
+        :animate="animatedIndex == i"
+        @clicked="animate(i)"
+      />
+    </div>
+  </section>
 </template>
 
 <script setup lang="ts">
-import HanziWriter from 'hanzi-writer'
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import Zi from './Zi.vue'
 
 const props = defineProps<{
   modelValue: string
@@ -14,48 +22,16 @@ const characters = computed(() => {
   return props.modelValue.split('')
 })
 
-const root = ref<HTMLElement | null>(null)
+watch(
+  () => props.modelValue,
+  () => (animatedIndex.value = 0)
+)
 
-let writers: HanziWriter[] = []
+const animatedIndex = ref(0)
 
-let generation = 0
-
-const loop = async (gen: number) => {
-  while (writers.length > 0) {
-    for (const writer of writers) {
-      if (gen !== generation) return
-      await writer.animateCharacter()
-    }
-  }
+function animate(index: number) {
+  animatedIndex.value = index
 }
-
-watch(characters, async (chars) => {
-  const el = root.value
-  if (el == null) return
-
-  el.innerHTML = ''
-  writers = []
-  writers = chars.map((ch) => {
-    const div = document.createElement('div')
-    div.id = `ch-${ch}`
-    el.appendChild(div)
-
-    return HanziWriter.create(div, ch, {
-      width: 300,
-      height: 300,
-      padding: 5,
-      showOutline: true,
-      strokeAnimationSpeed: 0.7,
-      delayBetweenStrokes: 20,
-      delayBetweenLoops: 1000,
-      onLoadCharDataError: (err) => {
-        console.error(err)
-      },
-    })
-  })
-
-  loop(++generation)
-})
 </script>
 
 <style scoped>

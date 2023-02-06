@@ -1,65 +1,64 @@
 <template>
   <div class="home">
-    <section class="static">
-      <section class="logo">
-        <Logo v-if="!transparent" />
-        <StrokeOrderBoard v-model="characters" />
-      </section>
-      <section class="search">
-        <QueryInput @input="run" />
-      </section>
+    <section class="logo">
+      <Logo v-if="!transparent" />
+      <StrokeOrderBoard v-model="characters" />
     </section>
-    <section class="results"></section>
+    <section class="search">
+      <QueryInput @input="run" />
+    </section>
+    <section class="results">
+      <SentenceBoard v-model="words" @selected="characters = $event" />
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
+import { WodemaoClient } from '@/clients/WodemaoClient'
 import Logo from '@/components/Logo.vue'
 import QueryInput from '@/components/QueryInput.vue'
+import SentenceBoard from '@/components/SentenceBoard.vue'
 import StrokeOrderBoard from '@/components/StrokeOrderBoard.vue'
 import { ref } from 'vue'
 
 const characters = ref('')
+const words = ref([] as string[])
 const transparent = ref(false)
+const query = ref('')
 
-const chineseRegex = /\p{Script=Han}/u
+let lastQuery = ''
 // actions
-const run = (query: string) => {
-  const q = query
+const run = async (q: string) => {
+  query.value = q
   if (q === lastQuery) return
   lastQuery = q
 
-  const words = split(q).filter(isMatch)
-  const all = words
-    .flatMap((word) => word.split('').filter((c) => c.match(chineseRegex)))
-    .join('')
-  characters.value = all
-  transparent.value = all.length > 0
+  words.value = (await split(q)).filter(isMatch)
+
+  if (words.value.length > 0) {
+    characters.value = words.value[0]
+  }
+  transparent.value = words.value.length > 0
 }
 
 // internal
 const regex = /\p{Script=Han}/u
-let lastQuery = ''
 
 const isMatch = (str: string) => {
   return regex.test(str)
 }
 
-const split = (str: string): string[] => {
-  return str.split('').filter((s) => s !== ' ')
+const split = async (str: string): Promise<string[]> => {
+  const res = await client.parse(str)
+  return res.fine.flatMap((x) => x)
 }
+
+// const client
+const client = new WodemaoClient()
 </script>
 
 <style scoped>
 .home {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-}
-
-.static {
   display: flex;
   flex-direction: column;
   align-items: center;
