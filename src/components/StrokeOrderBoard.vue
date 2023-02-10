@@ -11,6 +11,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Word } from '@/model/Word'
 import { computed, ref, watch } from 'vue'
 import Zi from './Zi.vue'
 
@@ -19,7 +20,7 @@ const props = defineProps<{
 }>()
 
 const characters = computed(() => {
-  return props.modelValue.split('')
+  return props.modelValue.split('') ?? []
 })
 
 watch(

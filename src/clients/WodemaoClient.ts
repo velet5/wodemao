@@ -1,3 +1,4 @@
+import type { Word } from '@/model/Word'
 import LRU from 'lru-cache'
 
 export class WodemaoClient {
@@ -12,7 +13,7 @@ export class WodemaoClient {
 
   private async parse0(text: String): Promise<ParseResult> {
     const response = await fetch(
-      'https://wodemao-server.everyday.fail/tokenize',
+      'https://wodemao-server.everyday.fail/process',
       {
         method: 'POST',
         headers: {
@@ -23,7 +24,7 @@ export class WodemaoClient {
     )
     const json = await response.json()
     return {
-      fine: json.fine,
+      words: json['word_info_list'],
     }
   }
 
@@ -39,5 +40,5 @@ export class WodemaoClient {
 }
 
 export interface ParseResult {
-  fine: string[][]
+  words: Word[][]
 }

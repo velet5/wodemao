@@ -1,20 +1,21 @@
 <template>
   <section class="sentence-board">
     <div v-for="(word, i) in modelValue">
-      <Word v-model="modelValue[i]" @clicked="emit('selected', word)" />
+      <WordVue v-model="modelValue[i]" @clicked="emit('selected', word)" />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import Word from './Word.vue'
+import type { Word } from '@/model/Word'
+import WordVue from './Word.vue'
 
 defineProps<{
-  modelValue: string[]
+  modelValue: Word[]
 }>()
 
 const emit = defineEmits<{
-  (e: 'selected', word: string): void
+  (e: 'selected', word: Word): void
 }>()
 </script>
 

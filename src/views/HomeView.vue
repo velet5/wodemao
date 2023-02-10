@@ -8,7 +8,7 @@
       <QueryInput @input="run" />
     </section>
     <section class="results">
-      <SentenceBoard v-model="words" @selected="characters = $event" />
+      <SentenceBoard v-model="words" @selected="characters = $event.word" />
     </section>
   </div>
 </template>
@@ -19,10 +19,11 @@ import Logo from '@/components/Logo.vue'
 import QueryInput from '@/components/QueryInput.vue'
 import SentenceBoard from '@/components/SentenceBoard.vue'
 import StrokeOrderBoard from '@/components/StrokeOrderBoard.vue'
+import type { Word } from '@/model/Word'
 import { ref } from 'vue'
 
 const characters = ref('')
-const words = ref([] as string[])
+const words = ref([] as Word[])
 const transparent = ref(false)
 const query = ref('')
 
@@ -33,10 +34,10 @@ const run = async (q: string) => {
   if (q === lastQuery) return
   lastQuery = q
 
-  words.value = (await split(q)).filter(isMatch)
+  words.value = (await split(q)).filter((w) => isMatch(w.word))
 
   if (words.value.length > 0) {
-    characters.value = words.value[0]
+    characters.value = words.value[0].word
   }
   transparent.value = words.value.length > 0
 }
@@ -48,9 +49,9 @@ const isMatch = (str: string) => {
   return regex.test(str)
 }
 
-const split = async (str: string): Promise<string[]> => {
+const split = async (str: string): Promise<Word[]> => {
   const res = await client.parse(str)
-  return res.fine.flatMap((x) => x)
+  return res.words.flatMap((x) => x)
 }
 
 // const client
